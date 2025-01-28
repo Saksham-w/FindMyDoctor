@@ -187,15 +187,20 @@ const AddDoctor = () => {
                 value={speciality}
                 className="border rounded px-2 py-2"
               >
-                {/* <option value="General physician">General physician</option>
+                <option value="General physician">General physician</option>
                 <option value="Gynecologist">Gynecologist</option>
                 <option value="Dermatologist">Dermatologist</option>
                 <option value="Pediatricians">Pediatricians</option>
                 <option value="Neurologist">Neurologist</option>
-                <option value="Gastroenterologist">Gastroenterologist</option> */}
+                <option value="Gastroenterologist">Gastroenterologist</option>
                 <option value="Endocrinologist">Endocrinologist</option>
+                <option value="Nephrologists">Nephrologists</option>
+                <option value="Orthopedics">Orthopedics</option>
+                <option value="Rheumatologists">Rheumatologists</option>
+                <option value="Hematologists">Hematologists</option>
+                <option value="Psychiatrist">Psychiatrist</option>
                 <option value="Cardiologist">Cardiologist</option>
-                <option value="Dermatologist">Dermatologist</option>
+                <option value="Ophthalmologist">Ophthalmologist</option>
                 <option value="Oncologist">Oncologist</option>
                 <option value="Pulmonologist">Pulmonologist</option>
               </select>

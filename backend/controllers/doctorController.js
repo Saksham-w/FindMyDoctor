@@ -3,103 +3,54 @@ import bcrypt from "bcrypt";
 import appointmentModel from "../models/appointmentModel.js";
 import doctorModel from "../models/doctorModel.js";
 import diseaseModel from "../models/diseaseModel.js";
-import { PythonShell } from 'python-shell';
-// import Doctor from '../models/doctorModel.js'; // Assuming your doctor schema is here
+import { PythonShell } from "python-shell";
 
 // // Other existing controllers...
 
-// /**
-//  * Controller: Recommend Doctors
-//  * @route POST /api/doctors/recommend
-//  * @desc Recommends doctors based on the disease input
-//  */
-// export const recommendDoctors = async (req, res) => {
-//   const { disease } = req.body;
+/**
+ * Controller: Recommend Doctors
+ * @route POST /api/doctors/recommend
+ * @desc Recommends doctors based on the disease input
+ */
+export const reccommendDoctors = async (req, res) => {
+  const { disease } = req.body;
 
-//   if (!disease) {
-//     return res.status(400).json({ message: "Disease input is required." });
-//   }
-
-//   try {
-//     // Run Python script to get the recommended specialty
-//     const options = {
-//       mode: 'text',
-//       pythonOptions: ['-u'], // Unbuffered output
-//       scriptPath: './', // Ensure your Python script is in the project root
-//       args: [disease]
-//     };
-
-//     PythonShell.run('recommend.py', options, async (err, results) => {
-//       if (err) {
-//         console.error("Error running Python script:", err);
-//         return res.status(500).json({ message: "Error processing recommendation." });
-//       }
-
-//       // Get the recommended specialty from the Python script
-//       const recommendedSpecialty = results[0];
-//       console.log("Recommended Specialty:", recommendedSpecialty);
-
-//       // Query the database for doctors with the recommended specialty
-//       const doctors = await Doctor.find({ specialty: recommendedSpecialty });
-
-//       if (doctors.length === 0) {
-//         return res.status(404).json({ message: "No doctors found for the recommended specialty." });
-//       }
-
-//       res.status(200).json({ recommendedSpecialty, doctors });
-//     });
-//   } catch (err) {
-//     console.error("Error in recommendation process:", err);
-//     res.status(500).json({ message: "Server error." });
-//   }
-// };
-
-
-const recommendDoctors = async (req, res) => {
-  const { diseaseName, location } = req.query;
-
-  console.log("Received query params:", { diseaseName, location });
-
-  if (!diseaseName || !diseaseName.trim()) {
-    return res.status(400).json({ message: "Disease name is required" });
+  if (!disease) {
+    return res.status(400).json({ message: "Disease input is required." });
   }
 
   try {
-    // Find the disease in the database
-    const disease = await diseaseModel.findOne({
-      name: new RegExp(`^${diseaseName}$`, "i"),
-    });
+    // Run Python script to get the recommended specialty
+    const options = {
+      mode: 'text',
+      pythonOptions: ['-u'], // Unbuffered output
+      scriptPath: './', // Ensure your Python script is in the project root
+      args: [disease]
+    };
 
-    if (!disease || !disease.speciality) {
-        console.log("Disease not found or missing specialization:", diseaseName);
-        return res.status(404).json({ message: "Disease or specialization not found" });
+    PythonShell.run('recommend.py', options, async (err, results) => {
+      if (err) {
+        console.error("Error running Python script:", err);
+        return res.status(500).json({ message: "Error processing recommendation." });
       }
-  
-      console.log("Found specialization:", disease.speciality);
-  
-   // Step 2: Build doctor query using 'specialization'
-   const query = { speciality: disease.speciality }; // Map 'specialization' to 'speciality' for doctorModel
 
-   if (location) {
-     query["address.city"] = new RegExp(`^${location}$`, "i");
-   }
+      // Get the recommended specialty from the Python script
+      const recommendedSpecialty = results[0];
+      console.log("Recommended Specialty:", recommendedSpecialty);
 
-   console.log("Doctor search query:", query);
+      // Query the database for doctors with the recommended specialty
+      const doctors = await Doctor.find({ specialty: recommendedSpecialty });
 
-   // Step 3: Fetch doctors
-   const doctors = await doctorModel.find(query).select("name email speciality fees address");
+      if (doctors.length === 0) {
+        return res.status(404).json({ message: "No doctors found for the recommended specialty." });
+      }
 
-   if (doctors.length === 0) {
-     console.log("No doctors found for the criteria:", query);
-     return res.status(404).json({ message: "No doctors found for the given criteria" });
-   }
-
-   console.log("Doctors found:", doctors);
-   res.json(doctors);
- } catch (error) {
-   console.error("Server error:", error);
-   res.status(500).json({ message: "Server error" });
- }
+      res.status(200).json({ recommendedSpecialty, doctors });
+    });
+  } catch (err) {
+    console.error("Error in recommendation process:", err);
+    res.status(500).json({ message: "Server error." });
+  }
 };
 
 // API for doctor Login
@@ -176,6 +127,59 @@ const appointmentComplete = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
+  }
+};
+
+const recommendDoctors = async (req, res) => {
+  const { diseaseName, location } = req.query;
+
+  console.log("Received query params:", { diseaseName, location });
+
+  if (!diseaseName || !diseaseName.trim()) {
+    return res.status(400).json({ message: "Disease name is required" });
+  }
+
+  try {
+    // Find the disease in the database
+    const disease = await diseaseModel.findOne({
+      name: new RegExp(`^${diseaseName}$`, "i"),
+    });
+
+    if (!disease || !disease.speciality) {
+      console.log("Disease not found or missing specialization:", diseaseName);
+      return res
+        .status(404)
+        .json({ message: "Disease or specialization not found" });
+    }
+
+    console.log("Found specialization:", disease.speciality);
+
+    // Step 2: Build doctor query using 'specialization'
+    const query = { speciality: disease.speciality }; // Map 'specialization' to 'speciality' for doctorModel
+
+    if (location) {
+      query["address.city"] = new RegExp(`^${location}$`, "i");
+    }
+
+    console.log("Doctor search query:", query);
+
+    // Step 3: Fetch doctors
+    const doctors = await doctorModel
+      .find(query)
+      .select("name email speciality fees address");
+
+    if (doctors.length === 0) {
+      console.log("No doctors found for the criteria:", query);
+      return res
+        .status(404)
+        .json({ message: "No doctors found for the given criteria" });
+    }
+
+    console.log("Doctors found:", doctors);
+    res.json(doctors);
+  } catch (error) {
+    console.error("Server error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -280,5 +284,5 @@ export {
   doctorDashboard,
   doctorProfile,
   updateDoctorProfile,
-  recommendDoctors
+  recommendDoctors,
 };

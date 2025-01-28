@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "mongoose": "^8.9.5",
-    "python-shell": "^5.0.0"
-  }
-}
